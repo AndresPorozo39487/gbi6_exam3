@@ -146,7 +146,9 @@ ggarrange(p3, ggarrange(p1, p2, labels =c("b", "c"), nrow=2),
 
 ### [1.0 punto] 1.1. Interprete lo que se muestra en la figura anterior
 
-**INTERPRETACIÓN**
+**El primer gráfico ( p1) es un gráfico de barras de error agrupadas con puntos con fluctuaciones. Muestra la relación entre la longitud del pico y el sexo de tres especies diferentes de pingüinos. El eje x representa la especie, el eje y representa la longitud del pico y el color representa el sexo. La posición de los puntos está alterada para una mejor visibilidad,p2 es un gráfico de cajas con puntos con fluctuaciones que muestra la relación entre el ancho del pico y la especie de pingüino. El eje x representa la especie, el eje y representa el ancho del pico y el color representa la especie.
+
+p3 es un gráfico de dispersión con línea de regresión que muestra la relación entre la longitud y el ancho del pico para todas las especies de pingüinos. El color representa la especie y se utiliza una escala logarítmica en ambos ejes **
 
 ### [3.0 puntos] 1.2. Genere dos gráficas `p4` y `p5`donde: 
 
@@ -158,8 +160,33 @@ ggarrange(p3, ggarrange(p1, p2, labels =c("b", "c"), nrow=2),
 img4 = "http://www.sthda.com/sthda/RDoc/figure/ggplot2/ggcorrplot-demo-ggcorrplot-7.png"
 cat(paste0('<center><img src="', img4,'" width="400" height="400" alt=""></center>')) 
 ```
+library(ggplot2)
+library(palmerpenguins)
+data(penguins)
 
-- Realice una composición de figuras que se indica en la figura de abajo e interprete.
+p4 <- ggplot(penguins, aes(x = body_mass_g, y = flipper_length_mm, color = sex)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid(sex ~ island) +
+  labs(x = "Masa corporal (g)", y = "Longitud de aleta (mm)") +
+  scale_color_manual(values = c("#009E73", "#D55E00")) +
+  theme_classic() +
+  theme(legend.position = "bottom") +
+  stat_poly_eq(aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~~")),
+               formula = y ~ x, 
+               parse = TRUE,
+               label.x = "right",
+               label.y = "top")
+p5 <- ggplot(penguins, aes(x = bill_length_mm, y = bill_depth_mm)) +
+  geom_point(aes(color = body_mass_g, size = flipper_length_mm)) +
+  scale_color_gradient(low = "grey", high = "red") +
+  scale_size_continuous(range = c(1, 8)) +
+  labs(x = "Longitud de pico (mm)", y = "Ancho de pico (mm)") +
+  theme_classic() +
+  theme(legend.position = "bottom") +
+  ggtitle("Correlation plot") +
+  geom_smooth(method = "lm", se = FALSE, color = "black")
+
 
 ```{r echo = FALSE, results = 'asis'}
 img4 = "result/ejercicio1.png"
@@ -259,8 +286,21 @@ Aquí se carga los datos `EMTAB6141.rdata` que se requiere para este ejercicio. 
 - `'sig_genes.list'`
 
 ```{r}
-# Cargue aquí sus datos
 
+library(GEOquery)
+library(pheatmap)
+library(ComplexHeatmap)
+
+
+gse <- getGEO("GSE120710")
+exp <- exprs(gse[[1]])
+
+exp[is.na(exp)] <- 0
+exp <- log2(exp + 1)
+
+dist_mat <- dist(exp, method = "euclidean")
+hc_rows <- hclust(dist_mat, method = "ward.D2")
+hc_cols <- hclust(dist(t(exp)), method = "ward.D2")
 ```
 
 En la siguiente celda de código, realice la réplica del mapa de calor que se encuentra a la izquierda (`hmap1`) de esta figura: 
